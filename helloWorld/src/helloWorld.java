@@ -1,29 +1,30 @@
+import sun.jvm.hotspot.runtime.ResultTypeFinder;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.util.HashMap;
 
 /**
  * Created by wangwei50 on 2017/8/10.
  */
 public class helloWorld {
     public static void main(String[] argus){
-        CDao cdb = CDao.getInstance();
 
-        ResultSet rs = cdb.select("William");
+        UsrDao ud = new UsrDao();
+        HashMap<String,Object> cond = new HashMap<>();
+        cond.put("name", "William");
 
+        Entity ue  = ud.select(cond);
 
-        try{
-            ResultSetMetaData m = rs.getMetaData();
-            System.out.println(m.getColumnCount());
+        //Entity ue = ud.selectByPK(9);
 
-            while(rs.next()){
+        System.out.println(ue.get("id"));
+        System.out.println(ue.get("name"));
 
-            }
-
-        }catch(Exception e){
-            e.printStackTrace();
-
-        }
+        BillDao bd = new BillDao();
+        Entity be = bd.selectByPK(1);
+        System.out.println(be.get("pay_money"));
 
 
     }
