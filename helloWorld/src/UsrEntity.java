@@ -1,47 +1,43 @@
-import javafx.beans.property.adapter.ReadOnlyJavaBeanBooleanProperty;
+public class UsrEntity extends Entity {
+    protected String[] attributes = {"id", "name", "fans", "status"};
+    private String id;
+    private String name;
+    private String fans;
+    private String status;
+    UsrEntity() {
+        super.attributes = this.attributes;
+    }
 
-import java.util.HashMap;
-
-public class UsrEntity extends Entity{
-
-    public int id;
-    public String name;
-    public int fans;
-    public int status;
-
-    public int getId(){
+    public String getId() {
         return id;
     }
 
-    public String getName(){
-        return name;
-    }
-
-    public int getFans(){
-        return fans;
-    }
-
-    public int getStatus(){
-        return status;
-    }
-
-    public void setId(int val){
+    public void setId(String val) {
         id = val;
     }
 
-    public void setName(String val){
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String val) {
         name = val;
     }
 
-    public void setFans(int val){
+    public String getFans() {
+        return fans;
+    }
+
+    public void setFans(String val) {
         fans = val;
     }
 
-    public void setStatus(int val){
-        status = val;
+    public String getStatus() {
+        return status;
     }
 
-
-
+    public void setStatus(String val) {
+        status = val;
+    }
 
 }

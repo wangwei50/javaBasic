@@ -1,11 +1,8 @@
-import java.sql.ResultSet;
-import java.util.HashMap;
+public class UsrDao extends Dao {
 
-public class UsrDao extends Dao{
-
-    UsrDao(){
+    UsrDao() {
         _tableName = "usr";
-        _entityName = "usrEntity";
+        _entityName = "UsrEntity";
 
     }
 

@@ -1,16 +1,14 @@
-import javafx.beans.property.adapter.ReadOnlyJavaBeanBooleanProperty;
-import sun.jvm.hotspot.runtime.ResultTypeFinder;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 abstract class Dao {
-    protected static Connection dbConnection;
+    protected volatile static Connection dbConnection;
 
     protected static String DBDRIVER = "com.mysql.jdbc.Driver";
     protected static String DBURL = "jdbc:mysql://localhost:3306/java?useSSL=false";
@@ -20,71 +18,103 @@ abstract class Dao {
     protected String _entityName;
 
     Dao() {
-        synchronized (this) {
-            if (dbConnection == null) {
-                try {
-                    Class.forName(DBDRIVER); //1、使用CLASS 类加载驱动程序
-                    dbConnection = DriverManager.getConnection(DBURL, DBUSER, DBPASS);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (dbConnection == null) {
+            synchronized (this) {
+                if (dbConnection == null) {
+                    try {
+                        Class.forName(DBDRIVER); //1、使用CLASS 类加载驱动程序
+                        dbConnection = DriverManager.getConnection(DBURL, DBUSER, DBPASS);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
-
     }
 
-    public Entity select(HashMap<String, Object> map) {
+
+//    public void insert(Entity entity){
+//        PreparedStatement statement = null;
+//        ResultSet rs = null;
+//        Entity entity = null;
+//        String sql = "INSERT INTO  " + _tableName + "()" + "VALUES()";
+//
+//        try {
+//            statement = dbConnection.prepareStatement(sql);
+//            bindParams(statement, map);
+//            rs = statement.executeQuery();
+//            return getEntityFromRS(rs);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+//
+//    public void update(Entity entity) {
+//
+//        PreparedStatement statement = null;
+//        ResultSet rs = null;
+//        String whereClause = getWhereClauseFromCondition(map);
+//        String sql = "SELECT * FROM " + _tableName + whereClause;
+//
+//        try {
+//            statement = dbConnection.prepareStatement(sql);
+//            bindParams(statement, map);
+//            rs = statement.executeQuery();
+//
+//
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//    }
+
+    public ArrayList<Entity> select(HashMap<String, Object> map) {
         PreparedStatement statement = null;
-        ResultSet rs = null;
-        Entity entity = null;
+        ArrayList<Entity> entities = null;
         String whereClause = getWhereClauseFromCondition(map);
         String sql = "SELECT * FROM " + _tableName + whereClause;
 
         try {
             statement = dbConnection.prepareStatement(sql);
             bindParams(statement, map);
-            rs = statement.executeQuery();
-            return getEntityFromRS(rs);
+            ResultSet rs = statement.executeQuery();
+            entities =  getEntityFromRS(rs);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return entity;
+        return entities;
+    }
+
+    public Entity selectOne(HashMap<String, Object> map) {
+        ArrayList<Entity> entities = select(map);
+        return entities.get(0);
     }
 
     public Entity selectByPK(int pk) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("id", pk);
-        return select(map);
+        return selectOne(map);
     }
 
-    protected Entity getEntityFromRS(ResultSet rs) {
+    protected ArrayList<Entity> getEntityFromRS(ResultSet rs) {
+        ArrayList<Entity> entities = new ArrayList<>();
         try {
-            if (_entityName.equals("billEntity")) {
-                BillEntity entity = new BillEntity();
-                while(rs.next()){
-                    entity.id = rs.getInt("id");
-                    entity.pay_money = rs.getInt("pay_money");
-                    entity.uid = rs.getInt("uid");
-                }
-                return entity;
-            } else if (_entityName.equals("usrEntity")) {
-                UsrEntity entity = new UsrEntity();
-                while (rs.next()) {
-                    entity.id = rs.getInt("id");
-                    entity.name = rs.getString("name");
-                    entity.fans = rs.getInt("fans");
-                    entity.status = rs.getInt("status");
+            Class c = Class.forName(_entityName);
+            Entity entity = (Entity) c.newInstance();
+            String[] attributes = entity.getAttributes();
+            while (rs.next()) {
+                for (int i = 0; i < attributes.length; i++) {
+                    entity.set(attributes[i], rs.getString(attributes[i]));
 
                 }
-                return entity;
+                entities.add(entity);
             }
         } catch (Exception e) {
             e.printStackTrace();
-
         }
 
-        return null;
+        return entities;
 
     }
 
