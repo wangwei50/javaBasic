@@ -7,13 +7,17 @@ abstract class Entity implements sget {
         return attributes;
     }
 
-    public Object get(String fieldName) {
+    public String getPk(){
+        return "id";
+    }
+
+    public String get(String fieldName) {
         try {
             String firstLetter = fieldName.substring(0, 1).toUpperCase();
             String getter = "get" + firstLetter + fieldName.substring(1);
             Method method = this.getClass().getMethod(getter, new Class[]{});
             Object value = method.invoke(this, new Object[]{});
-            return value;
+            return (String)value;
         } catch (Exception e) {
             e.printStackTrace();
         }

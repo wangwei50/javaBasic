@@ -1,7 +1,4 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -68,7 +65,89 @@ abstract class Dao {
 //        }
 //    }
 
-    public ArrayList<Entity> select(HashMap<String, Object> map) {
+    public int delete(Entity entity){
+        int isDeleted = 0;
+        try{
+            HashMap<String,String> map = new HashMap<>();
+            map.put(entity.getPk(),entity.get(entity.getPk()));
+            String whereClause = getWhereClauseFromCondition(map);
+
+            String sql = "DELETE FROM " + _tableName + whereClause;
+            PreparedStatement statement = dbConnection.prepareStatement(sql);
+            bindParams(statement, map);
+
+            isDeleted = statement.executeUpdate();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return isDeleted;
+    }
+
+    public boolean update(Entity entity){
+        boolean isSuccess = false;
+        try{
+            ArrayList<String> values = new ArrayList<>();
+            String setStr = "";
+            String[] attributes =  entity.attributes;
+            for(int i = 0;i<attributes.length;i++){
+                if(attributes[i] == entity.getPk() || entity.get(attributes[i]) == null){
+                    continue;
+                }
+                if(!setStr.equals("")){
+                    setStr = setStr + ",";
+                }
+                setStr = setStr + attributes[i] + "=?";
+                values.add(entity.get(attributes[i]));
+            }
+            values.add(entity.get(entity.getPk()));
+            String sql = "UPDATE usr SET "+setStr+" WHERE "+entity.getPk() + "=?" ;
+            PreparedStatement statement = dbConnection.prepareStatement(sql);
+            bindParams(statement, values);
+            int isInserted = statement.executeUpdate();
+            if(isInserted == 1){
+                isSuccess = true;
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+
+    public boolean insert(Entity entity){
+        boolean isSuccess = false;
+        try{
+            ArrayList<String> values = new ArrayList<>();
+            String columnStr = "";
+            String commaStr = "";
+            String[] attributes =  entity.attributes;
+            for(int i = 0;i<attributes.length;i++){
+                if(attributes[i] == entity.getPk() || entity.get(attributes[i]) == null){
+                    continue;
+                }
+                if(!columnStr.equals("")){
+                    columnStr = columnStr + ",";
+                    commaStr = commaStr+",";
+                }
+                columnStr = columnStr + attributes[i];
+                commaStr = commaStr + "?";
+                values.add(entity.get(attributes[i]));
+            }
+            String sql = "INSERT INTO usr("+columnStr+") " + "VALUES("+commaStr+")";
+            PreparedStatement statement = dbConnection.prepareStatement(sql);
+            bindParams(statement, values);
+            int isInserted = statement.executeUpdate();
+            if(isInserted == 1){
+                isSuccess = true;
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return isSuccess;
+    }
+
+    public ArrayList<Entity> select(HashMap<String, String> map) {
         PreparedStatement statement = null;
         ArrayList<Entity> entities = null;
         String whereClause = getWhereClauseFromCondition(map);
@@ -86,13 +165,13 @@ abstract class Dao {
         return entities;
     }
 
-    public Entity selectOne(HashMap<String, Object> map) {
+    public Entity selectOne(HashMap<String, String> map) {
         ArrayList<Entity> entities = select(map);
         return entities.get(0);
     }
 
-    public Entity selectByPK(int pk) {
-        HashMap<String, Object> map = new HashMap<>();
+    public Entity selectByPK(String pk) {
+        HashMap<String, String> map = new HashMap<>();
         map.put("id", pk);
         return selectOne(map);
     }
@@ -101,12 +180,12 @@ abstract class Dao {
         ArrayList<Entity> entities = new ArrayList<>();
         try {
             Class c = Class.forName(_entityName);
-            Entity entity = (Entity) c.newInstance();
-            String[] attributes = entity.getAttributes();
             while (rs.next()) {
+                Entity entity = (Entity) c.newInstance();
+                String[] attributes = entity.getAttributes();
+
                 for (int i = 0; i < attributes.length; i++) {
                     entity.set(attributes[i], rs.getString(attributes[i]));
-
                 }
                 entities.add(entity);
             }
@@ -119,7 +198,7 @@ abstract class Dao {
     }
 
 
-    protected String getWhereClauseFromCondition(HashMap<String, Object> map) {
+    protected String getWhereClauseFromCondition(HashMap<String, String> map) {
         String whereClause = "";
         Iterator iter = map.entrySet().iterator();
         while (iter.hasNext()) {
@@ -137,7 +216,7 @@ abstract class Dao {
         return whereClause;
     }
 
-    protected void bindParams(PreparedStatement statement, HashMap<String, Object> map) {
+    protected void bindParams(PreparedStatement statement, HashMap<String, String> map) {
         Iterator iter = map.entrySet().iterator();
         int index = 0;
         try {
@@ -153,6 +232,17 @@ abstract class Dao {
             e.printStackTrace();
         }
 
+    }
+
+    protected void bindParams(PreparedStatement statement, ArrayList<String> al) {
+        try {
+            for(int i=0;i<al.size();i++){
+                statement.setString(i+1, al.get(i));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
