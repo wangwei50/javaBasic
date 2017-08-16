@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="mysql:mysql-connector-java:5.1.43" level="project" />
+    <orderEntry type="library" name="org.mybatis:mybatis:3.4.4" level="project" />
   </component>
 </module>

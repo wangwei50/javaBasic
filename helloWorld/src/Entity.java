@@ -1,3 +1,5 @@
+import javafx.beans.property.adapter.ReadOnlyJavaBeanBooleanProperty;
+
 import java.lang.reflect.Method;
 
 abstract class Entity implements sget {
@@ -12,16 +14,21 @@ abstract class Entity implements sget {
     }
 
     public String get(String fieldName) {
+        Object value = null;
+
         try {
             String firstLetter = fieldName.substring(0, 1).toUpperCase();
             String getter = "get" + firstLetter + fieldName.substring(1);
-            Method method = this.getClass().getMethod(getter, new Class[]{});
-            Object value = method.invoke(this, new Object[]{});
-            return (String)value;
+            Method[] methods = this.getClass().getMethods();
+            for(Method method : methods){
+                if(method.getName().equals(getter)){
+                    value = method.invoke(this,new Class[]{});
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return (String)value;
     }
 
     public void set(String fieldName, String val) {

@@ -172,6 +172,7 @@ abstract class Dao {
 
     public Entity selectByPK(String pk) {
         HashMap<String, String> map = new HashMap<>();
+
         map.put("id", pk);
         return selectOne(map);
     }

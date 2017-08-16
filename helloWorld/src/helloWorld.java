@@ -1,6 +1,4 @@
-import sun.jvm.hotspot.HelloWorld;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -9,13 +7,15 @@ import java.util.HashMap;
  */
 public class helloWorld {
     public static void main(String[] argus) {
-        //testSelect();
+        testSelect();
 
         //testInsert and Delete
-        //testInsert();
+        testInsert();
 
         //testUpdate
         testUpdate();
+
+
 
     }
 
